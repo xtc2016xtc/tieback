@@ -12,17 +12,14 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import {Link} from "react-router-dom";
+import {SigninValidation} from "@/lib/validation";
 
 const SigninFrom = () => {
 
-    const formSchema = z.object({
-        email: z.string().email(),
-        password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-    })
-
     // 1. Define your form.
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof SigninValidation>>({
+        resolver: zodResolver(SigninValidation),
         defaultValues: {
             email: "",
             password: "",
@@ -30,9 +27,7 @@ const SigninFrom = () => {
     })
 
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
+    const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
         console.log(values)
     }
 
@@ -74,7 +69,18 @@ const SigninFrom = () => {
                         )}
                     />
                     {/*登录按钮*/}
-                    <Button type="submit">Submit</Button>
+                    <Button type="submit" className="shad-button_primary">
+                        登录
+                    </Button>
+
+                    {/*转到注册*/}
+                    <p className="text-small-regular text-light-2 text-center mt-2">
+                        没有&apos;账户？
+                        <Link to={"/sign-up"}
+                              className="text-primary-500 text-small-semibold ml-1">
+                            前往注册
+                        </Link>
+                    </p>
                 </form>
             </div>
         </Form>
