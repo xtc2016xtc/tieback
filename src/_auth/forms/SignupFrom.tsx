@@ -13,21 +13,23 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import {Link} from "react-router-dom";
-import {SigninValidation} from "@/lib/validation";
+import { SignupValidation } from "@/lib/validation";
 
 const SignupFrom = () => {
 
     // 1. Define your form.
-    const form = useForm<z.infer<typeof SigninValidation>>({
-        resolver: zodResolver(SigninValidation),
+    const form = useForm<z.infer<typeof SignupValidation>>({
+        resolver: zodResolver(SignupValidation),
         defaultValues: {
+            username: "",
+            name:"",
             email: "",
             password: "",
         },
     })
 
     // 2. Define a submit handler.
-    const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
+    const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
         console.log(values)
     }
 
@@ -47,10 +49,36 @@ const SignupFrom = () => {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5 w-full mt-4">
                     <FormField
                         control={form.control}
-                        name="email"
+                        name="name"
                         render={({field}) => (
                             <FormItem>
-                                <FormLabel className="shad-form_label">邮箱账户</FormLabel>
+                                <FormLabel className="shad-form_label">姓名</FormLabel>
+                                <FormControl>
+                                    <Input type="text" className="shad-input" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="shad-form_label">名字</FormLabel>
+                                <FormControl>
+                                    <Input type="text" className="shad-input" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="shad-form_label">账户</FormLabel>
                                 <FormControl>
                                     <Input type="text" className="shad-input" {...field} />
                                 </FormControl>
@@ -71,12 +99,12 @@ const SignupFrom = () => {
                             </FormItem>
                         )}
                     />
-                    {/*登录按钮*/}
+                    {/*注册加载*/}
                     <Button type="submit" className="shad-button_primary">
-                        登录
+                        注册
                     </Button>
 
-                    {/*转到注册*/}
+                    {/*转到登录*/}
                     <p className="text-small-regular text-light-2 text-center mt-2">
                         已有&apos;账户？
                         <Link to={"/sign-in"}
