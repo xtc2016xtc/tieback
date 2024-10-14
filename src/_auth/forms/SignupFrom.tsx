@@ -14,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input"
 import {Link} from "react-router-dom";
 import { SignupValidation } from "@/lib/validation";
+import Loader from "@/components/shared/Loader.tsx";
+
 
 const SignupFrom = () => {
 
@@ -101,6 +103,9 @@ const SignupFrom = () => {
                     />
                     {/*注册加载*/}
                     <Button type="submit" className="shad-button_primary">
+                        <div className="flex-center gap-2">
+                            <Loader /> 加载中...
+                        </div>
                         注册
                     </Button>
 
