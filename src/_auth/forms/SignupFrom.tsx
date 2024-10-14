@@ -19,7 +19,7 @@ import Loader from "@/components/shared/Loader.tsx";
 
 const SignupFrom = () => {
 
-    // 1. Define your form.
+   /*注册表单数据*/
     const form = useForm<z.infer<typeof SignupValidation>>({
         resolver: zodResolver(SignupValidation),
         defaultValues: {
@@ -30,7 +30,7 @@ const SignupFrom = () => {
         },
     })
 
-    // 2. Define a submit handler.
+    /*注册逻辑*/
     const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
         console.log(values)
     }
