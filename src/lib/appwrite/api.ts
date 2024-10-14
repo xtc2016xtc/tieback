@@ -6,6 +6,7 @@ export async function signInAccount(user:{email: string, password: string}) {
         /*获取账户密码*/
         return await account.createEmailSession(user.email, user.password);
     }catch (error){
+        /*报错信息*/
         console.error(error)
     }
 }
