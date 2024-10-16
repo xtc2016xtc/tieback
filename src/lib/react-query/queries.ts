@@ -1,12 +1,20 @@
 
 
 import {useMutation} from "@tanstack/react-query";
-import {signInAccount} from "@/lib/appwrite/api.ts";
+import {createUserAccount, signInAccount} from "@/lib/appwrite/api.ts";
+import {INewUser} from "@/types";
 
-/*用户登录逻辑*/
+/*用户登录*/
 export const useSignInAccount = () => {
     return useMutation({
         mutationFn: (user: { email: string; password: string }) =>
             signInAccount(user),
     });
 }
+
+/*用户注册*/
+export const useCreateUserAccount = () => {
+    return useMutation({
+        mutationFn: (user: INewUser) => createUserAccount(user),
+    });
+};

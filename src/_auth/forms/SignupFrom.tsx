@@ -12,12 +12,22 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import { SignupValidation } from "@/lib/validation";
 import Loader from "@/components/shared/Loader.tsx";
+import {useToast} from "@/hooks/use-toast.ts";
+import {useCreateUserAccount, useSignInAccount} from "@/lib/react-query/queries.ts";
+import {useUserContext} from "@/context/AuthContext.tsx";
+
 
 
 const SignupFrom = () => {
+
+    const { toast } = useToast();
+    const navigate = useNavigate();
+    const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
+    const { mutateAsync: createUserAccount, isLoading: isCreatingAccount} = useCreateUserAccount()
+    const { mutateAsync: signInAccount, isLoading: isSigningInUser } = useSignInAccount();
 
    /*注册表单数据*/
     const form = useForm<z.infer<typeof SignupValidation>>({
@@ -31,8 +41,40 @@ const SignupFrom = () => {
     })
 
     /*注册逻辑*/
-    const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
+    async function onSubmit(values: z.infer<typeof SignupValidation>) {
         console.log(values)
+        const newUser = await createUserAccount(values)
+
+        if(!newUser) {
+            toast({title:"注册遇到错误，请再试一遍"})
+
+            return
+        }
+
+        const session = await signInAccount({
+            email: values.email,
+            password: values.password,
+        })
+
+        if (!session) {
+            toast({ title: "网络出现了问题，请从新登录", });
+
+            navigate("/sign-in");
+
+            return;
+        }
+
+        const isLoggedIn = await checkAuthUser();
+
+        if (isLoggedIn) {
+
+            form.reset();
+            navigate("/");
+        } else {
+            toast({ title: "登录失败，请再试一次", });
+
+            return;
+        }
     }
 
     return (
@@ -103,10 +145,13 @@ const SignupFrom = () => {
                     />
                     {/*注册加载*/}
                     <Button type="submit" className="shad-button_primary">
-                        <div className="flex-center gap-2">
-                            <Loader /> 加载中...
-                        </div>
-                        注册
+                        {isCreatingAccount || isSigningInUser || isUserLoading ? (
+                            <div className="flex-center gap-2">
+                                <Loader /> 加载中...
+                            </div>
+                        ) : (
+                            "注册"
+                        )}
                     </Button>
 
                     {/*转到登录*/}

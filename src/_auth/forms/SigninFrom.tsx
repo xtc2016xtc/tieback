@@ -12,12 +12,21 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {SigninValidation} from "@/lib/validation";
+import {useUserContext} from "@/context/AuthContext.tsx";
+import {useSignInAccount} from "@/lib/react-query/queries.ts";
+import {useToast} from "@/hooks/use-toast.ts";
+import Loader from "@/components/shared/Loader";
 
 const SigninFrom = () => {
 
-    // 1. Define your form.
+
+    const { toast } = useToast();
+    const navigate = useNavigate();
+    const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
+    const { mutateAsync: signInAccount, isLoading } = useSignInAccount();
+
     const form = useForm<z.infer<typeof SigninValidation>>({
         resolver: zodResolver(SigninValidation),
         defaultValues: {
@@ -26,9 +35,29 @@ const SigninFrom = () => {
         },
     })
 
-    // 2. Define a submit handler.
-    const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
-        console.log(values)
+    const handleSignin = async (user: z.infer<typeof SigninValidation>) => {
+
+        const session = await signInAccount(user);
+
+        if(!session) {
+            toast({title:"登录失败，再试一次"})
+
+            return
+        }
+
+        /*检测是否登录成功*/
+        const isLoggedIn = await checkAuthUser();
+
+        if (isLoggedIn) {
+            form.reset();
+
+            navigate("/")
+        } else {
+            toast({title:"登录失败，再试一次"})
+
+            return
+        }
+
     }
 
     return (
@@ -44,7 +73,7 @@ const SigninFrom = () => {
                 <p className="text-light-3 small-medium md:base-regular mt-2">
                     欢迎你，请登录你的账户以继续使用我们的服务。
                 </p>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5 w-full mt-4">
+                <form onSubmit={form.handleSubmit(handleSignin)} className="flex flex-col gap-5 w-full mt-4">
                     <FormField
                         control={form.control}
                         name="email"
@@ -73,7 +102,13 @@ const SigninFrom = () => {
                     />
                     {/*登录按钮*/}
                     <Button type="submit" className="shad-button_primary">
-                        登录
+                        {isLoading || isUserLoading ? (
+                            <div className="flex-center gap-2">
+                                <Loader /> 加载中...
+                            </div>
+                        ) : (
+                            "登录"
+                        )}
                     </Button>
 
                     {/*转到注册*/}
