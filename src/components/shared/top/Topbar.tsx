@@ -1,13 +1,23 @@
 import { Button } from "@/components/ui/button";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useUserContext} from "@/context/AuthContext.tsx";
+import {useSignOutAccount} from "@/lib/react-query/queries.ts";
+import {useEffect} from "react";
 
 const Topbar = () => {
 
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
 
+    /*获取用户信息*/
     const { user } = useUserContext()
 
+    /*用户登出逻辑*/
+    const { mutate: signOut, isSuccess } = useSignOutAccount();
+
+    /*监听变化是否登出,登出刷新页面*/
+    useEffect(() => {
+        if (isSuccess) navigate(0);
+    }, [isSuccess, navigate]);
 
 
     return (
@@ -26,6 +36,7 @@ const Topbar = () => {
                     <Button
                         variant="ghost"
                         className="shad-button_ghost"
+                        onClick={() => signOut()}
                     >
                         <img src="/assets/icons/logout.svg" alt="logout"/>
                     </Button>

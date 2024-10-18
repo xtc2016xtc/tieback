@@ -100,3 +100,15 @@ export async function getAccount() {
         console.log(error);
     }
 }
+
+/*用户登出*/
+export async function signOutAccount() {
+    try {
+        /*删除当前登录信息*/
+        const session = await account.deleteSession("current");
+
+        return session;
+    } catch (error) {
+        console.log(error);
+    }
+}
