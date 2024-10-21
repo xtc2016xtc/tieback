@@ -1,5 +1,5 @@
-import {account, appwriteConfig, avatars, databases} from "@/lib/appwrite/config.ts";
-import {INewUser} from "@/types";
+import {account, appwriteConfig, avatars, databases, storage} from "@/lib/appwrite/config.ts";
+import {INewPost, INewUser, IUpdatePost} from "@/types";
 import {ID, Query} from "appwrite";
 
 /*用户登录*/
@@ -108,6 +108,205 @@ export async function signOutAccount() {
         const session = await account.deleteSession("current");
 
         return session;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*上传文件*/
+export async function uploadFile(file: File) {
+    try {
+        /*创建新文件*/
+        const uploadedFile = await storage.createFile(
+            appwriteConfig.storageId,
+            ID.unique(),
+            file
+        );
+
+        return uploadedFile;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*获取文件预览*/
+export function getFilePreview(fileId: string) {
+    try {
+        /*获取文件预览URL*/
+        const fileUrl = storage.getFilePreview(
+            appwriteConfig.storageId,
+            fileId,
+            2000,
+            2000,
+            "top",
+            100
+        );
+
+        if (!fileUrl) throw Error;
+
+        return fileUrl;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*删除文件*/
+export async function deleteFile(fileId: string) {
+    try {
+        /*删除*/
+        await storage.deleteFile(appwriteConfig.storageId, fileId);
+
+        return { status: "ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*创建帖子*/
+export async function createPost(post: INewPost) {
+    try {
+       /* 上传文件到Appwrite存储*/
+        const uploadedFile = await uploadFile(post.file[0]);
+
+        if (!uploadedFile) throw Error;
+
+        /*获取文件预览URL*/
+        const fileUrl = getFilePreview(uploadedFile.$id);
+        if (!fileUrl) {
+            await deleteFile(uploadedFile.$id);
+            throw Error;
+        }
+
+        /*将标签转换为数组*/
+        const tags = post.tags?.replace(/ /g, "").split(",") || [];
+
+        /*创建帖子*/
+        const newPost = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            ID.unique(),
+            {
+                creator: post.userId,
+                caption: post.caption,
+                imageUrl: fileUrl,
+                imageId: uploadedFile.$id,
+                location: post.location,
+                tags: tags,
+            }
+        );
+
+        if (!newPost) {
+            await deleteFile(uploadedFile.$id);
+            throw Error;
+        }
+
+        return newPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*更新帖子*/
+export async function updatePost(post: IUpdatePost) {
+    const hasFileToUpdate = post.file.length > 0;
+
+    try {
+        let image = {
+            imageUrl: post.imageUrl,
+            imageId: post.imageId,
+        };
+
+        if (hasFileToUpdate) {
+            // 上传新文件到Appwrite存储
+            const uploadedFile = await uploadFile(post.file[0]);
+            if (!uploadedFile) throw Error;
+
+            // 获取新文件预览URL
+            const fileUrl = getFilePreview(uploadedFile.$id);
+            if (!fileUrl) {
+                await deleteFile(uploadedFile.$id);
+                throw Error;
+            }
+
+            image = { ...image, imageUrl: fileUrl, imageId: uploadedFile.$id };
+        }
+
+        // 将标签转换为数组
+        const tags = post.tags?.replace(/ /g, "").split(",") || [];
+
+        // 更新帖子
+        const updatedPost = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            post.postId,
+            {
+                caption: post.caption,
+                imageUrl: image.imageUrl,
+                imageId: image.imageId,
+                location: post.location,
+                tags: tags,
+            }
+        );
+
+        // 更新失败
+        if (!updatedPost) {
+            // 删除新上传的文件
+            if (hasFileToUpdate) {
+                await deleteFile(image.imageId);
+            }
+
+            // 如果没有新文件上传，抛出错误
+            throw Error;
+        }
+
+        // 更新成功后，安全删除旧文件
+        if (hasFileToUpdate) {
+            await deleteFile(post.imageId);
+        }
+
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*获取最新的帖子*/
+export async function getRecentPosts() {
+    try {
+        // 查询最近帖子
+        const posts = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            [Query.orderDesc("$createdAt"), Query.limit(20)]
+        );
+
+        if (!posts) throw Error;
+
+        return posts;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*获取用户*/
+export async function getUsers(limit?: number) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queries: any[] = [Query.orderDesc("$createdAt")];
+
+    if (limit) {
+        queries.push(Query.limit(limit));
+    }
+
+    try {
+        const users = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.userCollectionId,
+            queries
+        );
+
+        if (!users) throw Error;
+
+        return users;
     } catch (error) {
         console.log(error);
     }
