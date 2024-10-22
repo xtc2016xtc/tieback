@@ -1,6 +1,7 @@
 import {useGetRecentPosts, useGetUsers} from "@/lib/react-query/queries.ts";
-import {Loader} from "lucide-react";
+import Loader from "@/components/shared/Loader.tsx";
 import {Models} from "appwrite";
+import PostCard from "@/components/shared/Card/PostCard.tsx";
 
 const Home = () => {
     /*获取最新的帖子*/
@@ -34,7 +35,7 @@ const Home = () => {
                             {posts?.documents.map((post: Models.Document) => (
                                 <li key={post.$id} className="flex justify-center w-full">
                                     {/*数据遍历*/}
-                                    {/*<PostCard post={post}/>*/}
+                                    <PostCard post={post}/>
                                 </li>
                             ))}
                         </ul>
