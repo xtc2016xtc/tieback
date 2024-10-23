@@ -2,6 +2,7 @@ import {useGetRecentPosts, useGetUsers} from "@/lib/react-query/queries.ts";
 import Loader from "@/components/shared/Loader.tsx";
 import {Models} from "appwrite";
 import PostCard from "@/components/shared/Card/PostCard.tsx";
+import UserCard from "@/components/shared/Card/UserCard.tsx";
 
 const Home = () => {
     /*获取最新的帖子*/
@@ -41,6 +42,22 @@ const Home = () => {
                         </ul>
                     )}
                 </div>
+            </div>
+
+            {/*参与话题总人数*/}
+            <div className="home-creators">
+                <h3 className="h3-bold text-light-1">人员列表</h3>
+                {isUserLoading && !creators ? (
+                    <Loader/>
+                ) : (
+                    <ul className="grid 2xl:grid-cols-2 gap-6">
+                        {creators?.documents.map((creator) => (
+                            <li key={creator?.$id}>
+                                <UserCard user={creator}/>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     )

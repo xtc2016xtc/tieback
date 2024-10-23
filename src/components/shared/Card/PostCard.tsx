@@ -2,6 +2,7 @@ import {Models} from "appwrite";
 import {useUserContext} from "@/context/AuthContext.tsx";
 import {Link} from "react-router-dom";
 import {multiFormatDateString} from "@/lib/utils.ts";
+import PostStats from "@/components/shared/Card/PostStats.tsx";
 
 type PostCardProps = {
     post: Models.Document;
@@ -75,7 +76,7 @@ const PostCard = ({ post }: PostCardProps) => {
                 />
             </Link>
             {/* 点赞,收藏 */}
-            {/*<PostStats post={post} userId={user.id}/>*/}
+            <PostStats post={post} userId={user.id}/>
         </div>
     )
 }

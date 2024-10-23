@@ -52,3 +52,7 @@ export const multiFormatDateString = (timestamp: string = ""): string => {
       return "刚才";
   }
 };
+
+export const checkIsLiked = (likeList: string[], userId: string) => {
+  return likeList.includes(userId);
+};

@@ -311,3 +311,64 @@ export async function getUsers(limit?: number) {
         console.log(error);
     }
 }
+
+/*点赞帖子*/
+export async function likePost(postId: string, likesArray: string[]) {
+    try {
+        /*更新帖子点赞信息*/
+        const updatedPost = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            postId,
+            {
+                likes: likesArray,
+            }
+        );
+
+        if (!updatedPost) throw Error;
+
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*保存帖子*/
+export async function savePost(userId: string, postId: string) {
+    try {
+        // 创建新文档保存帖子
+        const updatedPost = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.savesCollectionId,
+            ID.unique(),
+            {
+                user: userId,
+                post: postId,
+            }
+        );
+
+        if (!updatedPost) throw Error;
+
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*删除保存的贴子*/
+export async function deleteSavedPost(savedRecordId: string) {
+    try {
+        // 删除保存的帖子
+        const statusCode = await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.savesCollectionId,
+            savedRecordId
+        );
+
+        if (!statusCode) throw Error;
+
+        return { status: "Ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}

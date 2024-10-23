@@ -3,8 +3,8 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {
     createPost,
-    createUserAccount,
-    getRecentPosts, getUsers,
+    createUserAccount, deleteSavedPost, getCurrentUser,
+    getRecentPosts, getUsers, likePost, savePost,
     signInAccount,
     signOutAccount,
     updatePost
@@ -73,5 +73,80 @@ export const useGetUsers = (limit?: number) => {
     return useQuery({
         queryKey: [QUERY_KEYS.GET_USERS],
         queryFn: () => getUsers(limit),
+    });
+};
+
+/*点赞帖子*/
+export const useLikePost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({
+                         postId,
+                         likesArray,
+                     }: {
+            postId: string;
+            likesArray: string[];
+        }) => likePost(postId, likesArray),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_POSTS],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+            });
+        },
+    });
+};
+
+/*收藏帖子*/
+export const useSavePost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, postId }: { userId: string; postId: string }) =>
+            savePost(userId, postId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_POSTS],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+            });
+        },
+    });
+};
+
+/*删除已收藏的帖子*/
+export const useDeleteSavedPost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (savedRecordId: string) => deleteSavedPost(savedRecordId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_POSTS],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+            });
+        },
+    });
+};
+
+/*获取当前用户*/
+export const useGetCurrentUser = () => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+        queryFn: getCurrentUser,
     });
 };
