@@ -3,8 +3,8 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {
     createPost,
-    createUserAccount, deleteSavedPost, getCurrentUser,
-    getRecentPosts, getUsers, likePost, savePost,
+    createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getPostById,
+    getRecentPosts, getUserPosts, getUsers, likePost, savePost,
     signInAccount,
     signOutAccount,
     updatePost
@@ -148,5 +148,37 @@ export const useGetCurrentUser = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
         queryFn: getCurrentUser,
+    });
+};
+
+/*根据id获取帖子*/
+export const useGetPostById = (postId?: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_POST_BY_ID, postId],
+        queryFn: () => getPostById(postId),
+        enabled: !!postId,
+    });
+};
+
+/*获取用户帖子*/
+export const useGetUserPosts = (userId?: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
+        queryFn: () => getUserPosts(userId),
+        enabled: !!userId,
+    });
+};
+
+/*删除帖子*/
+export const useDeletePost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ postId, imageId }: { postId?: string; imageId: string }) =>
+            deletePost(postId, imageId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+            });
+        },
     });
 };

@@ -372,3 +372,66 @@ export async function deleteSavedPost(savedRecordId: string) {
         console.log(error);
     }
 }
+
+/*根据id获取帖子详细信息*/
+export async function getPostById(postId?: string) {
+    if (!postId) throw Error;
+
+    try {
+        /*根据帖子ID查询帖子信息*/
+        const post = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            postId
+        );
+
+        if (!post) throw Error;
+
+        return post;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*获取用户的帖子*/
+export async function getUserPosts(userId?: string) {
+    if (!userId) return;
+
+    try {
+        // 根据用户ID查询用户帖子
+        const post = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            [Query.equal("creator", userId), Query.orderDesc("$createdAt")]
+        );
+
+        if (!post) throw Error;
+
+        return post;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*删除帖子*/
+export async function deletePost(postId?: string, imageId?: string) {
+    if (!postId || !imageId) return;
+
+    try {
+        // 删除帖子
+        const statusCode = await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            postId
+        );
+
+        if (!statusCode) throw Error;
+
+        // 删除帖子对应的文件
+        await deleteFile(imageId);
+
+        return { status: "Ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}
