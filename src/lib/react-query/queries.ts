@@ -1,10 +1,18 @@
-
-
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useInfiniteQuery, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {
     createPost,
-    createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getPostById,
-    getRecentPosts, getUserPosts, getUsers, likePost, savePost,
+    createUserAccount,
+    deletePost,
+    deleteSavedPost,
+    getCurrentUser,
+    getInfinitePosts,
+    getPostById,
+    getRecentPosts,
+    getUserPosts,
+    getUsers,
+    likePost,
+    savePost,
+    searchPosts,
     signInAccount,
     signOutAccount,
     updatePost
@@ -181,4 +189,43 @@ export const useDeletePost = () => {
             });
         },
     });
+};
+
+/*获取帖子数据*/
+export const useGetPosts = () => {
+    return useInfiniteQuery({
+        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryFn: getInfinitePosts as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        getNextPageParam: (lastPage: any) => {
+            // 如果没有数据，就没有更多页面。
+            if (lastPage && lastPage.documents.length === 0) {
+                return null;
+            }
+
+            // 使用最后一个文档的$id作为游标。
+            return lastPage.documents[lastPage.documents.length - 1].$id;
+        },
+    });
+};
+
+/*搜索帖子*/
+export const useSearchPosts = (searchTerm: string) => {
+    return useQuery(
+        [QUERY_KEYS.SEARCH_POSTS, searchTerm], // queryKey 应该是一个数组
+        () => searchPosts(searchTerm), // queryFn
+        {
+            enabled: !!searchTerm,
+            retry: false, // 不重试
+            refetchOnWindowFocus: false, // 不在窗口焦点变化时重新获取数据
+            initialData: { documents: [], total: 0 }, // 初始数据符合 DocumentList 类型
+            onError: (error) => {
+                console.error('没有这个帖子:', error);
+            },
+            onSuccess: (data) => {
+                console.log('Search posts success:', data);
+            }
+        }
+    );
 };

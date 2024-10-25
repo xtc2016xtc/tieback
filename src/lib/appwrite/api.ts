@@ -435,3 +435,50 @@ export async function deletePost(postId?: string, imageId?: string) {
         console.log(error);
     }
 }
+
+/*获取帖子数据*/
+export async function getInfinitePosts({ pageParam }: { pageParam: number }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(9)];
+
+    if (pageParam) {
+        queries.push(Query.cursorAfter(pageParam.toString()));
+    }
+
+    try {
+        // 查询无限帖子
+        const posts = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            queries
+        );
+
+        if (!posts) throw Error;
+
+        return posts;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/*搜索帖子*/
+export async function searchPosts(searchTerm: string) {
+    try {
+        // 根据搜索词查询帖子
+        const posts = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postCollectionId,
+            [Query.search("caption", searchTerm)]
+        );
+
+        if (!posts || !posts.documents || posts.documents.length === 0) {
+            return { documents: [] }; // 返回空数组
+        }
+
+        return posts;
+
+    } catch (error) {
+        console.error('Error searching posts:', error);
+        return { documents: [] }; // 返回空数组
+    }
+}
