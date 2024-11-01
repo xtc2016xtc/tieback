@@ -482,3 +482,24 @@ export async function searchPosts(searchTerm: string) {
         return { documents: [] }; // 返回空数组
     }
 }
+
+/*用于根据用户ID获取用户信息*/
+export async function getUserById(userId: string) {
+    try {
+        // 从数据库中获取指定用户ID的用户信息
+        const user = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.userCollectionId,
+            userId
+        );
+
+        // 如果没有获取到用户信息，则抛出错误
+        if (!user) throw Error;
+
+        // 返回用户信息
+        return user;
+    } catch (error) {
+        // 打印错误信息
+        console.log(error);
+    }
+}

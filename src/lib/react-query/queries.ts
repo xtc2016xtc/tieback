@@ -7,7 +7,7 @@ import {
     getCurrentUser,
     getInfinitePosts,
     getPostById,
-    getRecentPosts,
+    getRecentPosts, getUserById,
     getUserPosts,
     getUsers,
     likePost,
@@ -228,4 +228,17 @@ export const useSearchPosts = (searchTerm: string) => {
             }
         }
     );
+};
+
+/*用于根据用户ID获取用户信息*/
+export const useGetUserById = (userId: string) => {
+    // 使用useQuery函数，传入查询键、查询函数和是否启用查询
+    return useQuery({
+        // 查询键为QUERY_KEYS.GET_USER_BY_ID和用户ID
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
+        // 查询函数为getUserById，传入用户ID
+        queryFn: () => getUserById(userId),
+        // 如果用户ID存在，则启用查询
+        enabled: !!userId,
+    });
 };
