@@ -15,9 +15,9 @@ import {
     searchPosts,
     signInAccount,
     signOutAccount,
-    updatePost
+    updatePost, updateUser
 } from "@/lib/appwrite/api.ts";
-import {INewPost, INewUser, IUpdatePost} from "@/types";
+import {INewPost, INewUser, IUpdatePost, IUpdateUser} from "@/types";
 import {QUERY_KEYS} from "@/lib/react-query/queryKeys.ts";
 
 /*用户登录*/
@@ -240,5 +240,21 @@ export const useGetUserById = (userId: string) => {
         queryFn: () => getUserById(userId),
         // 如果用户ID存在，则启用查询
         enabled: !!userId,
+    });
+};
+
+/*更新用户个人信息*/
+export const useUpdateUser = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (user: IUpdateUser) => updateUser(user),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.$id],
+            });
+        },
     });
 };

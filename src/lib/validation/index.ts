@@ -21,3 +21,12 @@ export const PostValidation = z.object({
     location: z.string().min(1, { message: "必填" }).max(1000, { message: "最多1000字符." }),
     tags: z.string(),
 });
+
+/*编辑个人资料*/
+export const ProfileValidation = z.object({
+    file: z.custom<File[]>(),
+    name: z.string().min(2, { message: "最少2个字符." }),
+    username: z.string().min(2, { message: "最少2个字符." }),
+    email: z.string().email(),
+    bio: z.string(),
+});
